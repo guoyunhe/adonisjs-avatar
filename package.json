@@ -1,0 +1,79 @@
+{
+  "name": "adonisjs-avatar",
+  "description": "AdonisJS package for basic avatar uploading with image resizing",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "main": "./build/index.js",
+  "type": "module",
+  "files": [
+    "build",
+    "!build/bin",
+    "!build/tests"
+  ],
+  "exports": {
+    ".": "./build/index.js",
+    "./types": "./build/src/types.js",
+    "./avatar_provider": "./build/providers/avatar_provider.js",
+    "./services/main": "./build/services/main.js"
+  },
+  "scripts": {
+    "pretest": "npm run lint",
+    "test": "node --import=@poppinss/ts-exec --enable-source-maps bin/test.ts",
+    "quick:test": "node --import=@poppinss/ts-exec --enable-source-maps bin/test.ts",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "clean": "del-cli build",
+    "compile": "tsc",
+    "build": "npm run compile",
+    "prepublishOnly": "npm run build",
+    "version": "npm run build"
+  },
+  "keywords": [
+    "adonisjs",
+    "avatar",
+    "upload",
+    "image",
+    "resize"
+  ],
+  "author": "guoyunhe",
+  "license": "MIT",
+  "devDependencies": {
+    "@adonisjs/assembler": "^8.0.0",
+    "@adonisjs/core": "^7.0.0",
+    "@adonisjs/drive": "^4.0.0",
+    "@japa/assert": "^4.0.0",
+    "@japa/runner": "^5.0.0",
+    "@poppinss/ts-exec": "^1.0.0",
+    "@types/node": "^22.0.0",
+    "del-cli": "^6.0.0",
+    "sharp": "^0.33.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@adonisjs/core": "^7.0.0",
+    "@adonisjs/drive": "^4.0.0",
+    "sharp": "^0.33.0"
+  },
+  "peerDependenciesMeta": {
+    "sharp": {
+      "optional": true
+    }
+  },
+  "dependencies": {},
+  "adonisjs": {
+    "types": "adonisjs-avatar",
+    "providers": [
+      "adonisjs-avatar/avatar_provider"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guoyunhe/adonisjs-avatar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/guoyunhe/adonisjs-avatar/issues"
+  },
+  "homepage": "https://github.com/guoyunhe/adonisjs-avatar#readme"
+}
