@@ -8,7 +8,7 @@
  */
 
 import type { ApplicationService } from '@adonisjs/core/types'
-import { Disk, DriveManager } from 'flydrive'
+import { Disk, DriveManager } from '@adonisjs/drive'
 import { AvatarManager } from '../src/avatar_manager.js'
 import type { AvatarConfig } from '../src/types.js'
 

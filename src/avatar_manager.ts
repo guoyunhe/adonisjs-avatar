@@ -10,7 +10,7 @@
 import { readFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import type { MultipartFile } from '@adonisjs/bodyparser'
-import type { Disk } from 'flydrive'
+import type { Disk } from '@adonisjs/drive'
 import type { AvatarConfig, AvatarUploadResult } from './types.js'
 
 /**
