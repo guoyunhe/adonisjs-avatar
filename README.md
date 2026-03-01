@@ -32,6 +32,13 @@ This will:
 
 - Register the `AvatarProvider` in your `adonisrc.ts`
 - Create a `config/avatar.ts` configuration file
+- Create a migration `database/migrations/add_avatar_version_to_users.ts`
+
+Then run migrations:
+
+```bash
+node ace migration:run
+```
 
 ## Configuration
 
@@ -84,6 +91,7 @@ export default class UsersController {
     try {
       const result = await avatar.upload(file);
       auth.user!.avatar = result.key;
+      auth.user!.avatarVersion = result.version;
       await auth.user!.save();
 
       return response.ok({ url: result.url });
@@ -97,7 +105,7 @@ export default class UsersController {
       return response.notFound();
     }
 
-    const url = await avatar.getUrl(auth.user!.avatar);
+    const url = await avatar.getUrl(auth.user!.avatar, auth.user!.avatarVersion);
     return response.ok({ url });
   }
 }
@@ -123,6 +131,7 @@ export default class UsersController {
 
     const result = await this.avatarManager.upload(file);
     auth.user!.avatar = result.key;
+    auth.user!.avatarVersion = result.version;
     await auth.user!.save();
 
     return response.ok({ url: result.url });
@@ -138,17 +147,19 @@ export default class UsersController {
 
 Validates, optionally resizes, and stores the uploaded avatar file.
 
-Returns `{ key: string, url?: string }` where `key` is the storage key and `url` is the public URL (if available for the disk).
+Returns `{ key: string, version: number, url?: string }` where `key` is the storage key, `version` is the cache version, and `url` is the public URL (if available for the disk).
 
 #### `delete(key: string): Promise<void>`
 
 Deletes the avatar at the given storage key.
 
-#### `getUrl(key: string): Promise<string>`
+#### `getUrl(key: string, avatarVersion?: number): Promise<string>`
 
 Returns the public URL for the avatar at the given storage key.
 
-#### `getSignedUrl(key: string, options?: { expiresIn?: string | number }): Promise<string>`
+When `avatarVersion` is provided, the URL gets `?v=<avatarVersion>` (or `&v=...`), so browsers fetch the updated avatar after each upload.
+
+#### `getSignedUrl(key: string, options?: { expiresIn?: string | number }, avatarVersion?: number): Promise<string>`
 
 Returns a signed (temporary) URL for the avatar at the given storage key.
 

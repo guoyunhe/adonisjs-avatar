@@ -59,6 +59,12 @@ export interface AvatarUploadResult {
   key: string;
 
   /**
+   * Version number for cache invalidation. Save it on the user record and
+   * pass it to getUrl/getSignedUrl.
+   */
+  version: number;
+
+  /**
    * The public URL of the uploaded avatar (if available)
    */
   url?: string;

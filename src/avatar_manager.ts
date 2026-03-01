@@ -99,20 +99,21 @@ export class AvatarManager {
 
     const ext = file.extname?.toLowerCase() ?? 'jpg';
     const key = `${this.#config.folder}/${randomUUID()}.${ext}`;
+    const version = Date.now();
 
     const buffer = await this.#process(file.tmpPath!, ext);
     await this.#disk.put(key, buffer);
 
     let url: string | undefined;
     try {
-      url = await this.#disk.getUrl(key);
+      url = this.#appendVersion(await this.#disk.getUrl(key), version);
     } catch {
       // URL generation may not be supported for all disk types
     }
 
     file.markAsMoved(key, key);
 
-    return { key, url };
+    return { key, version, url };
   }
 
   /**
@@ -143,8 +144,9 @@ export class AvatarManager {
    * const url = await avatarManager.getUrl(user.avatar)
    * ```
    */
-  async getUrl(key: string): Promise<string> {
-    return this.#disk.getUrl(key);
+  async getUrl(key: string, avatarVersion?: number): Promise<string> {
+    const url = await this.#disk.getUrl(key);
+    return this.#appendVersion(url, avatarVersion);
   }
 
   /**
@@ -159,8 +161,13 @@ export class AvatarManager {
    * const url = await avatarManager.getSignedUrl(user.avatar, { expiresIn: '1h' })
    * ```
    */
-  async getSignedUrl(key: string, options?: { expiresIn?: string | number }): Promise<string> {
-    return this.#disk.getSignedUrl(key, options);
+  async getSignedUrl(
+    key: string,
+    options?: { expiresIn?: string | number },
+    avatarVersion?: number,
+  ): Promise<string> {
+    const url = await this.#disk.getSignedUrl(key, options);
+    return this.#appendVersion(url, avatarVersion);
   }
 
   /**
@@ -217,5 +224,17 @@ export class AvatarManager {
     }
 
     return readFile(tmpPath);
+  }
+
+  #appendVersion(url: string, avatarVersion?: number): string {
+    if (avatarVersion === undefined) {
+      return url;
+    }
+
+    const [base, hash = ''] = url.split('#', 2);
+    const separator = base.includes('?') ? '&' : '?';
+    const withVersion = `${base}${separator}v=${encodeURIComponent(String(avatarVersion))}`;
+
+    return hash ? `${withVersion}#${hash}` : withVersion;
   }
 }

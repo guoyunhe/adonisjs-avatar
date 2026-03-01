@@ -7,13 +7,13 @@
  * file that was distributed with this source code.
  */
 
-import { test } from '@japa/runner';
-import { writeFile, mkdir, rm } from 'node:fs/promises';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
+import { MultipartFile } from '@adonisjs/bodyparser';
 import { Disk } from '@adonisjs/drive';
 import { FSDriver } from '@adonisjs/drive/drivers/fs';
-import { MultipartFile } from '@adonisjs/bodyparser';
+import { test } from '@japa/runner';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { AvatarManager } from '../src/avatar_manager.js';
 import { defineConfig } from '../src/define_config.js';
 
@@ -200,9 +200,12 @@ test.group('AvatarManager - upload', (group) => {
     const result = await manager.upload(file);
 
     assert.isString(result.key);
+    assert.isNumber(result.version);
+    assert.isAbove(result.version, 0);
     assert.match(result.key, /^avatars\/.+\.jpg$/);
     assert.isString(result.url);
     assert.include(result.url!, result.key);
+    assert.include(result.url!, `v=${result.version}`);
 
     // Verify file exists on disk
     const exists = await disk.exists(result.key);
@@ -276,10 +279,19 @@ test.group('AvatarManager - getUrl', (group) => {
 
   test('returns the url for an uploaded avatar', async ({ assert }) => {
     const file = await createRealImageFile(tmpDir, 'url-test.jpg');
-    const { key } = await manager.upload(file);
+    const { key, version } = await manager.upload(file);
 
-    const url = await manager.getUrl(key);
+    const url = await manager.getUrl(key, version);
     assert.isString(url);
     assert.include(url, key);
+    assert.include(url, `v=${version}`);
+  });
+
+  test('appends version query param to url', async ({ assert }) => {
+    const key = 'avatars/test.jpg';
+    const url = await manager.getUrl(key, 123);
+
+    assert.isString(url);
+    assert.include(url, 'v=123');
   });
 });

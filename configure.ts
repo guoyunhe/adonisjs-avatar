@@ -7,9 +7,9 @@
  * file that was distributed with this source code.
  */
 
+import type Configure from '@adonisjs/core/commands/configure';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import type Configure from '@adonisjs/core/commands/configure';
 
 /**
  * Configure the adonisjs-avatar package.
@@ -32,6 +32,21 @@ export async function configure(command: InstanceType<typeof Configure>) {
   const configFilePath = join(command.app.appRoot.pathname, 'config', 'avatar.ts');
   if (!existsSync(configFilePath)) {
     await codemods.makeUsingStub(stubsRoot, 'config/avatar.stub', {});
+  }
+
+  const migrationFilePath = join(
+    command.app.appRoot.pathname,
+    'database',
+    'migrations',
+    'add_avatar_version_to_users.ts',
+  );
+
+  if (!existsSync(migrationFilePath)) {
+    await codemods.makeUsingStub(
+      stubsRoot,
+      'database/migrations/add_avatar_version_to_users.stub',
+      {},
+    );
   }
 }
 
