@@ -24,7 +24,7 @@
     "quick:test": "node --import=@poppinss/ts-exec --enable-source-maps bin/test.ts",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "clean": "del-cli build",
+    "clean": "rm -r build",
     "compile": "tsc",
     "build": "npm run compile",
     "prepublishOnly": "npm run build",
@@ -47,7 +47,6 @@
     "@japa/runner": "^5.0.0",
     "@poppinss/ts-exec": "^1.0.0",
     "@types/node": "^22.0.0",
-    "del-cli": "^6.0.0",
     "sharp": "^0.33.0",
     "typescript": "^5.0.0"
   },
