@@ -7,12 +7,12 @@
  * file that was distributed with this source code.
  */
 
-import { configure, run } from '@japa/runner'
-import { assert } from '@japa/assert'
+import { configure, run } from '@japa/runner';
+import { assert } from '@japa/assert';
 
 configure({
   files: ['tests/**/*.spec.ts'],
   plugins: [assert()],
-})
+});
 
-run()
+run();

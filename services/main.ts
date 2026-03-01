@@ -7,8 +7,8 @@
  * file that was distributed with this source code.
  */
 
-import app from '@adonisjs/core/services/app'
-import type { AvatarManager } from '../src/avatar_manager.js'
+import app from '@adonisjs/core/services/app';
+import type { AvatarManager } from '../src/avatar_manager.js';
 
 /**
  * A lazily resolved instance of AvatarManager from the IoC container.
@@ -27,21 +27,21 @@ import type { AvatarManager } from '../src/avatar_manager.js'
  * const url = await avatar.getUrl('avatars/cuid.jpg')
  * ```
  */
-let avatarManager: AvatarManager
+let avatarManager: AvatarManager;
 
 const avatar = new Proxy({} as AvatarManager, {
   get(_target, prop, receiver) {
     if (!avatarManager) {
       throw new Error(
-        'AvatarManager has not been initialized. Make sure the AvatarProvider is registered.'
-      )
+        'AvatarManager has not been initialized. Make sure the AvatarProvider is registered.',
+      );
     }
-    return Reflect.get(avatarManager, prop, receiver)
+    return Reflect.get(avatarManager, prop, receiver);
   },
-})
+});
 
 app.ready(async () => {
-  avatarManager = await app.container.make('avatar.manager')
-})
+  avatarManager = await app.container.make('avatar.manager');
+});
 
-export default avatar
+export default avatar;

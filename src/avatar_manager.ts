@@ -7,31 +7,31 @@
  * file that was distributed with this source code.
  */
 
-import { readFile } from 'node:fs/promises'
-import { randomUUID } from 'node:crypto'
-import type { MultipartFile } from '@adonisjs/bodyparser'
-import type { Disk } from '@adonisjs/drive'
-import type { AvatarConfig, AvatarUploadResult } from './types.js'
+import { readFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import type { MultipartFile } from '@adonisjs/bodyparser';
+import type { Disk } from '@adonisjs/drive';
+import type { AvatarConfig, AvatarUploadResult } from './types.js';
 
 /**
  * Parses a size string like '5mb' into bytes.
  */
 function parseSize(size: string | number): number {
-  if (typeof size === 'number') return size
+  if (typeof size === 'number') return size;
 
   const units: Record<string, number> = {
     b: 1,
     kb: 1024,
     mb: 1024 * 1024,
     gb: 1024 * 1024 * 1024,
-  }
+  };
 
-  const match = size.toLowerCase().match(/^(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?$/)
-  if (!match) return 5 * 1024 * 1024
+  const match = size.toLowerCase().match(/^(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?$/);
+  if (!match) return 5 * 1024 * 1024;
 
-  const value = parseFloat(match[1])
-  const unit = match[2] ?? 'b'
-  return Math.floor(value * (units[unit] ?? 1))
+  const value = parseFloat(match[1]);
+  const unit = match[2] ?? 'b';
+  return Math.floor(value * (units[unit] ?? 1));
 }
 
 /**
@@ -59,18 +59,18 @@ function parseSize(size: string | number): number {
  * ```
  */
 export class AvatarManager {
-  #disk: Disk
-  #config: Required<Omit<AvatarConfig, 'disk'>>
+  #disk: Disk;
+  #config: Required<Omit<AvatarConfig, 'disk'>>;
 
   constructor(disk: Disk, config: AvatarConfig) {
-    this.#disk = disk
+    this.#disk = disk;
     this.#config = {
       folder: config.folder ?? 'avatars',
       width: config.width ?? 256,
       height: config.height ?? 256,
       allowedExtensions: config.allowedExtensions ?? ['jpg', 'jpeg', 'png', 'webp', 'gif'],
       maxSize: config.maxSize ?? '5mb',
-    }
+    };
   }
 
   /**
@@ -79,23 +79,21 @@ export class AvatarManager {
    */
   #validate(file: MultipartFile): void {
     if (!file.tmpPath) {
-      throw new Error(
-        'Avatar file has no temporary path. Ensure the file was uploaded correctly.'
-      )
+      throw new Error('Avatar file has no temporary path. Ensure the file was uploaded correctly.');
     }
 
-    const ext = file.extname?.toLowerCase()
+    const ext = file.extname?.toLowerCase();
     if (ext && !this.#config.allowedExtensions.includes(ext)) {
       throw new Error(
-        `Avatar file extension ".${ext}" is not allowed. Allowed extensions: ${this.#config.allowedExtensions.join(', ')}`
-      )
+        `Avatar file extension ".${ext}" is not allowed. Allowed extensions: ${this.#config.allowedExtensions.join(', ')}`,
+      );
     }
 
-    const maxBytes = parseSize(this.#config.maxSize)
+    const maxBytes = parseSize(this.#config.maxSize);
     if (file.size > maxBytes) {
       throw new Error(
-        `Avatar file size (${file.size} bytes) exceeds the maximum allowed size of ${this.#config.maxSize}`
-      )
+        `Avatar file size (${file.size} bytes) exceeds the maximum allowed size of ${this.#config.maxSize}`,
+      );
     }
   }
 
@@ -104,25 +102,25 @@ export class AvatarManager {
    * Returns a Buffer with the resized image, or reads the original file if sharp is unavailable.
    */
   async #process(tmpPath: string, ext: string): Promise<Buffer> {
-    let sharp: typeof import('sharp') | undefined
+    let sharp: typeof import('sharp') | undefined;
     try {
-      sharp = (await import('sharp')).default
+      sharp = (await import('sharp')).default;
     } catch {
       // sharp is not installed - skip image processing
     }
 
     if (sharp) {
-      const outputFormat = ext === 'gif' ? 'gif' : ext === 'png' ? 'png' : 'jpeg'
+      const outputFormat = ext === 'gif' ? 'gif' : ext === 'png' ? 'png' : 'jpeg';
       return sharp(tmpPath)
         .resize(this.#config.width, this.#config.height, {
           fit: 'cover',
           position: 'centre',
         })
         .toFormat(outputFormat as Parameters<ReturnType<typeof import('sharp')>['toFormat']>[0])
-        .toBuffer()
+        .toBuffer();
     }
 
-    return readFile(tmpPath)
+    return readFile(tmpPath);
   }
 
   /**
@@ -147,24 +145,24 @@ export class AvatarManager {
    * ```
    */
   async upload(file: MultipartFile): Promise<AvatarUploadResult> {
-    this.#validate(file)
+    this.#validate(file);
 
-    const ext = file.extname?.toLowerCase() ?? 'jpg'
-    const key = `${this.#config.folder}/${randomUUID()}.${ext}`
+    const ext = file.extname?.toLowerCase() ?? 'jpg';
+    const key = `${this.#config.folder}/${randomUUID()}.${ext}`;
 
-    const buffer = await this.#process(file.tmpPath!, ext)
-    await this.#disk.put(key, buffer)
+    const buffer = await this.#process(file.tmpPath!, ext);
+    await this.#disk.put(key, buffer);
 
-    let url: string | undefined
+    let url: string | undefined;
     try {
-      url = await this.#disk.getUrl(key)
+      url = await this.#disk.getUrl(key);
     } catch {
       // URL generation may not be supported for all disk types
     }
 
-    file.markAsMoved(key, key)
+    file.markAsMoved(key, key);
 
-    return { key, url }
+    return { key, url };
   }
 
   /**
@@ -181,7 +179,7 @@ export class AvatarManager {
    * ```
    */
   async delete(key: string): Promise<void> {
-    await this.#disk.delete(key)
+    await this.#disk.delete(key);
   }
 
   /**
@@ -196,7 +194,7 @@ export class AvatarManager {
    * ```
    */
   async getUrl(key: string): Promise<string> {
-    return this.#disk.getUrl(key)
+    return this.#disk.getUrl(key);
   }
 
   /**
@@ -212,6 +210,6 @@ export class AvatarManager {
    * ```
    */
   async getSignedUrl(key: string, options?: { expiresIn?: string | number }): Promise<string> {
-    return this.#disk.getSignedUrl(key, options)
+    return this.#disk.getSignedUrl(key, options);
   }
 }

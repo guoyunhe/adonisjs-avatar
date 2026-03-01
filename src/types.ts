@@ -15,38 +15,38 @@ export interface AvatarConfig {
    * The drive disk to use for storing avatars.
    * Defaults to the default drive disk.
    */
-  disk?: string
+  disk?: string;
 
   /**
    * The folder/directory within the disk to store avatars.
    * Defaults to 'avatars'.
    */
-  folder?: string
+  folder?: string;
 
   /**
    * Width of the resized avatar in pixels.
    * Defaults to 256.
    */
-  width?: number
+  width?: number;
 
   /**
    * Height of the resized avatar in pixels.
    * Defaults to 256.
    */
-  height?: number
+  height?: number;
 
   /**
    * Allowed file extensions for avatar uploads.
    * Defaults to ['jpg', 'jpeg', 'png', 'webp', 'gif'].
    */
-  allowedExtensions?: string[]
+  allowedExtensions?: string[];
 
   /**
    * Maximum file size allowed for avatar uploads.
    * Accepts bytes as number or string with unit (e.g., '5mb').
    * Defaults to '5mb'.
    */
-  maxSize?: string | number
+  maxSize?: string | number;
 }
 
 /**
@@ -56,10 +56,10 @@ export interface AvatarUploadResult {
   /**
    * The key/path of the uploaded file within the disk
    */
-  key: string
+  key: string;
 
   /**
    * The public URL of the uploaded avatar (if available)
    */
-  url?: string
+  url?: string;
 }

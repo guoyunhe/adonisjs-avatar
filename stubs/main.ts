@@ -10,4 +10,4 @@
 /**
  * Path to the stubs directory (this directory).
  */
-export const stubsRoot = new URL('.', import.meta.url).pathname
+export const stubsRoot = new URL('.', import.meta.url).pathname;

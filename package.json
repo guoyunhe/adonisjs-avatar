@@ -1,35 +1,7 @@
 {
   "name": "adonisjs-avatar",
-  "description": "AdonisJS package for basic avatar uploading with image resizing",
   "version": "0.0.1",
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "main": "./build/index.js",
-  "type": "module",
-  "files": [
-    "build",
-    "!build/bin",
-    "!build/tests"
-  ],
-  "exports": {
-    ".": "./build/index.js",
-    "./types": "./build/src/types.js",
-    "./avatar_provider": "./build/providers/avatar_provider.js",
-    "./services/main": "./build/services/main.js"
-  },
-  "scripts": {
-    "pretest": "npm run lint",
-    "test": "node --import=@poppinss/ts-exec --enable-source-maps bin/test.ts",
-    "quick:test": "node --import=@poppinss/ts-exec --enable-source-maps bin/test.ts",
-    "lint": "tsc --noEmit",
-    "typecheck": "tsc --noEmit",
-    "clean": "rm -r build",
-    "compile": "tsc",
-    "build": "npm run compile",
-    "prepublishOnly": "npm run build",
-    "version": "npm run build"
-  },
+  "description": "AdonisJS package for basic avatar uploading with image resizing",
   "keywords": [
     "adonisjs",
     "avatar",
@@ -37,17 +9,74 @@
     "image",
     "resize"
   ],
-  "author": "guoyunhe",
+  "homepage": "https://github.com/guoyunhe/adonisjs-avatar#readme",
+  "bugs": {
+    "url": "https://github.com/guoyunhe/adonisjs-avatar/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guoyunhe/adonisjs-avatar.git"
+  },
+  "funding": "https://github.com/sponsors/guoyunhe",
   "license": "MIT",
+  "author": "guoyunhe",
+  "type": "module",
+  "exports": {
+    ".": "./build/index.js",
+    "./types": "./build/src/types.js",
+    "./avatar_provider": "./build/providers/avatar_provider.js",
+    "./services/main": "./build/services/main.js"
+  },
+  "main": "./build/index.js",
+  "files": [
+    "build",
+    "!build/bin",
+    "!build/tests"
+  ],
+  "scripts": {
+    "build": "npm run compile",
+    "ci:eslint": "eslint -f json src -o ./.ci/eslint.json",
+    "clean": "rm -r build",
+    "compile": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "prettier --write . && eslint --fix .",
+    "prepare": "husky",
+    "prepublishOnly": "npm run build",
+    "quick:test": "node --import=@poppinss/ts-exec --enable-source-maps bin/test.ts",
+    "pretest": "npm run lint",
+    "test": "node --import=@poppinss/ts-exec --enable-source-maps bin/test.ts",
+    "typecheck": "tsc --noEmit",
+    "version": "npm run build"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "lint-staged": {
+    "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx,vue}": "eslint --fix",
+    "*.{cjs,css,cts,html,js,json,jsx,less,md,mjs,mts,scss,ts,tsx,vue,yaml,yml}": "prettier --write"
+  },
+  "prettier": "prettier-config-ali",
   "devDependencies": {
     "@adonisjs/assembler": "^8.0.0",
     "@adonisjs/bodyparser": "^11.0.0",
     "@adonisjs/core": "^7.0.0",
     "@adonisjs/drive": "^4.0.0",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@japa/assert": "^4.0.0",
     "@japa/runner": "^5.0.0",
     "@poppinss/ts-exec": "^1.0.0",
     "@types/node": "^22.0.0",
+    "eslint": "^9.39.3",
+    "eslint-config-ali": "^16.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.1",
+    "prettier": "^3.8.1",
+    "prettier-config-ali": "^1.5.0",
     "sharp": "^0.34.5",
     "typescript": "^5.0.0"
   },
@@ -62,18 +91,13 @@
       "optional": true
     }
   },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "adonisjs": {
     "types": "adonisjs-avatar",
     "providers": [
       "adonisjs-avatar/avatar_provider"
     ]
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/guoyunhe/adonisjs-avatar.git"
-  },
-  "bugs": {
-    "url": "https://github.com/guoyunhe/adonisjs-avatar/issues"
-  },
-  "homepage": "https://github.com/guoyunhe/adonisjs-avatar#readme"
+  }
 }

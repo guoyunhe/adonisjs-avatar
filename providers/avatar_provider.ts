@@ -7,17 +7,17 @@
  * file that was distributed with this source code.
  */
 
-import type { ApplicationService } from '@adonisjs/core/types'
-import { Disk, DriveManager } from '@adonisjs/drive'
-import { AvatarManager } from '../src/avatar_manager.js'
-import type { AvatarConfig } from '../src/types.js'
+import type { ApplicationService } from '@adonisjs/core/types';
+import { Disk, DriveManager } from '@adonisjs/drive';
+import { AvatarManager } from '../src/avatar_manager.js';
+import type { AvatarConfig } from '../src/types.js';
 
 /**
  * Extend the AdonisJS IoC container bindings
  */
 declare module '@adonisjs/core/types' {
   interface ContainerBindings {
-    'avatar.manager': AvatarManager
+    'avatar.manager': AvatarManager;
   }
 }
 
@@ -58,19 +58,19 @@ export default class AvatarProvider {
    */
   register() {
     this.app.container.singleton('avatar.manager', async (resolver) => {
-      const config: AvatarConfig = this.app.config.get('avatar', {})
-      let disk: Disk
+      const config: AvatarConfig = this.app.config.get('avatar', {});
+      let disk: Disk;
 
       if (config.disk) {
         const driveManager = (await resolver.make('drive.manager')) as DriveManager<
           Record<string, any>
-        >
-        disk = driveManager.use(config.disk)
+        >;
+        disk = driveManager.use(config.disk);
       } else {
-        disk = await resolver.make(Disk)
+        disk = await resolver.make(Disk);
       }
 
-      return new AvatarManager(disk, config)
-    })
+      return new AvatarManager(disk, config);
+    });
   }
 }

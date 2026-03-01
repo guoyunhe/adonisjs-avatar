@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-import type { AvatarConfig } from './types.js'
+import type { AvatarConfig } from './types.js';
 
 /**
  * Define configuration for the avatar package.
@@ -35,5 +35,5 @@ export function defineConfig(config: AvatarConfig): AvatarConfig {
     height: config.height ?? 256,
     allowedExtensions: config.allowedExtensions ?? ['jpg', 'jpeg', 'png', 'webp', 'gif'],
     maxSize: config.maxSize ?? '5mb',
-  }
+  };
 }

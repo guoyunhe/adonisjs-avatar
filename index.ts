@@ -7,6 +7,6 @@
  * file that was distributed with this source code.
  */
 
-export { AvatarManager } from './src/avatar_manager.js'
-export { defineConfig } from './src/define_config.js'
-export type { AvatarConfig, AvatarUploadResult } from './src/types.js'
+export { AvatarManager } from './src/avatar_manager.js';
+export { defineConfig } from './src/define_config.js';
+export type { AvatarConfig, AvatarUploadResult } from './src/types.js';
