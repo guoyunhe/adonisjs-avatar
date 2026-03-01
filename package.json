@@ -48,14 +48,14 @@
     "@japa/runner": "^5.0.0",
     "@poppinss/ts-exec": "^1.0.0",
     "@types/node": "^22.0.0",
-    "sharp": "^0.33.0",
+    "sharp": "^0.34.5",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
     "@adonisjs/bodyparser": "^11.0.0",
     "@adonisjs/core": "^7.0.0",
     "@adonisjs/drive": "^4.0.0",
-    "sharp": "^0.33.0"
+    "sharp": "^0.34.5"
   },
   "peerDependenciesMeta": {
     "sharp": {
