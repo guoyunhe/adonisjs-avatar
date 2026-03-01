@@ -1,0 +1,36 @@
+import { defineConfig } from 'adonisjs-avatar'
+
+export default defineConfig({
+  /**
+   * The drive disk to use for storing avatars.
+   * Leave undefined to use the default drive disk.
+   */
+  // disk: 'local',
+
+  /**
+   * The folder/directory within the disk to store avatars.
+   */
+  folder: 'avatars',
+
+  /**
+   * Width of the resized avatar in pixels.
+   * Requires the 'sharp' package to be installed.
+   */
+  width: 256,
+
+  /**
+   * Height of the resized avatar in pixels.
+   * Requires the 'sharp' package to be installed.
+   */
+  height: 256,
+
+  /**
+   * Allowed file extensions for avatar uploads.
+   */
+  allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+
+  /**
+   * Maximum file size allowed for avatar uploads.
+   */
+  maxSize: '5mb',
+})
