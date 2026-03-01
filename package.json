@@ -1,7 +1,7 @@
 {
   "name": "adonisjs-avatar",
   "description": "AdonisJS package for basic avatar uploading with image resizing",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -41,6 +41,7 @@
   "license": "MIT",
   "devDependencies": {
     "@adonisjs/assembler": "^8.0.0",
+    "@adonisjs/bodyparser": "^11.0.0",
     "@adonisjs/core": "^7.0.0",
     "@adonisjs/drive": "^4.0.0",
     "@japa/assert": "^4.0.0",
@@ -51,6 +52,7 @@
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
+    "@adonisjs/bodyparser": "^11.0.0",
     "@adonisjs/core": "^7.0.0",
     "@adonisjs/drive": "^4.0.0",
     "sharp": "^0.33.0"
@@ -60,7 +62,6 @@
       "optional": true
     }
   },
-  "dependencies": {},
   "adonisjs": {
     "types": "adonisjs-avatar",
     "providers": [
