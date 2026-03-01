@@ -7,10 +7,10 @@
  * file that was distributed with this source code.
  */
 
-import { readFile } from 'node:fs/promises';
-import { randomUUID } from 'node:crypto';
 import type { MultipartFile } from '@adonisjs/bodyparser';
 import type { Disk } from '@adonisjs/drive';
+import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 import type { AvatarConfig, AvatarUploadResult } from './types.js';
 
 /**
@@ -71,56 +71,6 @@ export class AvatarManager {
       allowedExtensions: config.allowedExtensions ?? ['jpg', 'jpeg', 'png', 'webp', 'gif'],
       maxSize: config.maxSize ?? '5mb',
     };
-  }
-
-  /**
-   * Validates the uploaded file against the configured restrictions.
-   * Throws an error if validation fails.
-   */
-  #validate(file: MultipartFile): void {
-    if (!file.tmpPath) {
-      throw new Error('Avatar file has no temporary path. Ensure the file was uploaded correctly.');
-    }
-
-    const ext = file.extname?.toLowerCase();
-    if (ext && !this.#config.allowedExtensions.includes(ext)) {
-      throw new Error(
-        `Avatar file extension ".${ext}" is not allowed. Allowed extensions: ${this.#config.allowedExtensions.join(', ')}`,
-      );
-    }
-
-    const maxBytes = parseSize(this.#config.maxSize);
-    if (file.size > maxBytes) {
-      throw new Error(
-        `Avatar file size (${file.size} bytes) exceeds the maximum allowed size of ${this.#config.maxSize}`,
-      );
-    }
-  }
-
-  /**
-   * Processes the avatar image using sharp if available.
-   * Returns a Buffer with the resized image, or reads the original file if sharp is unavailable.
-   */
-  async #process(tmpPath: string, ext: string): Promise<Buffer> {
-    let sharp: typeof import('sharp') | undefined;
-    try {
-      sharp = (await import('sharp')).default;
-    } catch {
-      // sharp is not installed - skip image processing
-    }
-
-    if (sharp) {
-      const outputFormat = ext === 'gif' ? 'gif' : ext === 'png' ? 'png' : 'jpeg';
-      return sharp(tmpPath)
-        .resize(this.#config.width, this.#config.height, {
-          fit: 'cover',
-          position: 'centre',
-        })
-        .toFormat(outputFormat as Parameters<ReturnType<typeof import('sharp')>['toFormat']>[0])
-        .toBuffer();
-    }
-
-    return readFile(tmpPath);
   }
 
   /**
@@ -211,5 +161,61 @@ export class AvatarManager {
    */
   async getSignedUrl(key: string, options?: { expiresIn?: string | number }): Promise<string> {
     return this.#disk.getSignedUrl(key, options);
+  }
+
+  /**
+   * Validates the uploaded file against the configured restrictions.
+   * Throws an error if validation fails.
+   */
+  #validate(file: MultipartFile): void {
+    if (!file.tmpPath) {
+      throw new Error('Avatar file has no temporary path. Ensure the file was uploaded correctly.');
+    }
+
+    const ext = file.extname?.toLowerCase();
+    if (ext && !this.#config.allowedExtensions.includes(ext)) {
+      throw new Error(
+        `Avatar file extension ".${ext}" is not allowed. Allowed extensions: ${this.#config.allowedExtensions.join(', ')}`,
+      );
+    }
+
+    const maxBytes = parseSize(this.#config.maxSize);
+    if (file.size > maxBytes) {
+      throw new Error(
+        `Avatar file size (${file.size} bytes) exceeds the maximum allowed size of ${this.#config.maxSize}`,
+      );
+    }
+  }
+
+  /**
+   * Processes the avatar image using sharp if available.
+   * Returns a Buffer with the resized image, or reads the original file if sharp is unavailable.
+   */
+  async #process(tmpPath: string, ext: string): Promise<Buffer> {
+    let sharp: typeof import('sharp') | undefined;
+    try {
+      sharp = (await import('sharp')).default;
+    } catch {
+      // sharp is not installed - skip image processing
+    }
+
+    if (sharp) {
+      let outputFormat: 'gif' | 'png' | 'jpeg' = 'jpeg';
+      if (ext === 'gif') {
+        outputFormat = 'gif';
+      } else if (ext === 'png') {
+        outputFormat = 'png';
+      }
+
+      return sharp(tmpPath)
+        .resize(this.#config.width, this.#config.height, {
+          fit: 'cover',
+          position: 'centre',
+        })
+        .toFormat(outputFormat as Parameters<ReturnType<typeof import('sharp')>['toFormat']>[0])
+        .toBuffer();
+    }
+
+    return readFile(tmpPath);
   }
 }

@@ -10,6 +10,8 @@
 import app from '@adonisjs/core/services/app';
 import type { AvatarManager } from '../src/avatar_manager.js';
 
+type AvatarService = Pick<AvatarManager, 'upload' | 'delete' | 'getUrl' | 'getSignedUrl'>;
+
 /**
  * A lazily resolved instance of AvatarManager from the IoC container.
  *
@@ -29,16 +31,30 @@ import type { AvatarManager } from '../src/avatar_manager.js';
  */
 let avatarManager: AvatarManager;
 
-const avatar = new Proxy({} as AvatarManager, {
-  get(_target, prop, receiver) {
-    if (!avatarManager) {
-      throw new Error(
-        'AvatarManager has not been initialized. Make sure the AvatarProvider is registered.',
-      );
-    }
-    return Reflect.get(avatarManager, prop, receiver);
+function getAvatarManager(): AvatarManager {
+  if (!avatarManager) {
+    throw new Error(
+      'AvatarManager has not been initialized. Make sure the AvatarProvider is registered.',
+    );
+  }
+
+  return avatarManager;
+}
+
+const avatar: AvatarService = {
+  upload(file) {
+    return getAvatarManager().upload(file);
   },
-});
+  delete(key) {
+    return getAvatarManager().delete(key);
+  },
+  getUrl(key) {
+    return getAvatarManager().getUrl(key);
+  },
+  getSignedUrl(key, options) {
+    return getAvatarManager().getSignedUrl(key, options);
+  },
+};
 
 app.ready(async () => {
   avatarManager = await app.container.make('avatar.manager');
