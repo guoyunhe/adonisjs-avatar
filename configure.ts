@@ -56,7 +56,7 @@ export async function configure(command: ConfigureCommandLike | InstanceType<typ
   // Create the config file if it does not exist
   const configFilePath = join(command.app.appRoot.pathname, 'config', 'avatar.ts');
   if (!existsSync(configFilePath)) {
-    await codemods.makeUsingStub(stubsRoot, 'config/avatar.ts', {});
+    await codemods.makeUsingStub(stubsRoot, 'config/avatar.stub', {});
   }
 
   const migrationFileGlob = join(

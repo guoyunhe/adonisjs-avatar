@@ -68,7 +68,7 @@ test.group('configure', (group) => {
 
     assert.deepEqual(providers, ['adonisjs-avatar/avatar_provider']);
     assert.deepEqual(createdStubs.sort(), [
-      'config/avatar.ts',
+      'config/avatar.stub',
       'make/migration/avatars.stub',
       'make/model/avatar.stub',
     ]);
