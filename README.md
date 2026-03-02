@@ -32,12 +32,83 @@ This will:
 
 - Register the `AvatarProvider` in your `adonisrc.ts`
 - Create a `config/avatar.ts` configuration file
-- Create a migration `database/migrations/add_avatar_version_to_users.ts`
+- Create a migration `database/migrations/create_avatars_table.ts`
 
 Then run migrations:
 
 ```bash
 node ace migration:run
+```
+
+Then, for each model that can have an avatar, add an `avatar_id` column in your own app migration.
+
+```ts
+// database/migrations/add_avatar_id_to_users.ts
+import { BaseSchema } from '@adonisjs/lucid/schema';
+
+export default class extends BaseSchema {
+  protected tableName = 'users';
+
+  async up() {
+    this.schema.alterTable(this.tableName, (table) => {
+      table
+        .integer('avatar_id')
+        .unsigned()
+        .references('id')
+        .inTable('avatars')
+        .onDelete('SET NULL')
+        .nullable();
+    });
+  }
+
+  async down() {
+    this.schema.alterTable(this.tableName, (table) => {
+      table.dropColumn('avatar_id');
+    });
+  }
+}
+```
+
+Define an `Avatar` model and relate it from models that have `avatar_id`.
+
+```ts
+// app/models/avatar.ts
+import { BaseModel, column } from '@adonisjs/lucid/orm';
+
+export default class Avatar extends BaseModel {
+  @column({ isPrimary: true })
+  declare id: number;
+
+  @column()
+  declare key: string;
+
+  @column()
+  declare version: number;
+}
+```
+
+```ts
+// app/models/user.ts
+import { BaseModel, belongsTo, column, computed } from '@adonisjs/lucid/orm';
+import type { BelongsTo } from '@adonisjs/lucid/types/relations';
+import Avatar from '#models/avatar';
+
+export default class User extends BaseModel {
+  @column()
+  declare avatarId: number | null;
+
+  @belongsTo(() => Avatar)
+  declare avatarRecord: BelongsTo<typeof Avatar>;
+
+  @computed()
+  get avatar(): string | null {
+    if (!this.avatarId || !this.$preloaded.avatarRecord) {
+      return null;
+    }
+
+    return `/avatar/${this.id}?v=${this.$preloaded.avatarRecord.version}`;
+  }
+}
 ```
 
 ## Configuration
@@ -74,6 +145,7 @@ export default defineConfig({
 // app/controllers/users_controller.ts
 import avatar from 'adonisjs-avatar/services/main';
 import type { HttpContext } from '@adonisjs/core/http';
+import Avatar from '#models/avatar';
 
 export default class UsersController {
   async updateAvatar({ request, auth, response }: HttpContext) {
@@ -82,30 +154,37 @@ export default class UsersController {
       return response.badRequest({ error: 'No avatar file provided' });
     }
 
-    // Delete old avatar if one exists
-    if (auth.user!.avatar) {
-      await avatar.delete(auth.user!.avatar);
+    await auth.user!.load('avatarRecord');
+
+    // Delete old avatar file if one exists
+    if (auth.user!.avatarRecord) {
+      await avatar.delete(auth.user!.avatarRecord.key);
     }
 
-    // Upload new avatar
     try {
       const result = await avatar.upload(file);
-      auth.user!.avatar = result.key;
-      auth.user!.avatarVersion = result.version;
+
+      const avatarRecord = await Avatar.create({
+        key: result.key,
+        version: result.version,
+      });
+
+      auth.user!.avatarId = avatarRecord.id;
       await auth.user!.save();
 
-      return response.ok({ url: result.url });
+      return response.ok({ avatar: `/avatar/${auth.user!.id}?v=${avatarRecord.version}` });
     } catch (error) {
       return response.badRequest({ error: error.message });
     }
   }
 
   async showAvatar({ auth, response }: HttpContext) {
-    if (!auth.user!.avatar) {
+    await auth.user!.load('avatarRecord');
+    if (!auth.user!.avatarRecord) {
       return response.notFound();
     }
 
-    const url = await avatar.getUrl(auth.user!.avatar, auth.user!.avatarVersion);
+    const url = await avatar.getUrl(auth.user!.avatarRecord.key, auth.user!.avatarRecord.version);
     return response.ok({ url });
   }
 }
@@ -118,6 +197,7 @@ export default class UsersController {
 import { inject } from '@adonisjs/core';
 import { AvatarManager } from 'adonisjs-avatar';
 import type { HttpContext } from '@adonisjs/core/http';
+import Avatar from '#models/avatar';
 
 @inject()
 export default class UsersController {
@@ -130,11 +210,12 @@ export default class UsersController {
     }
 
     const result = await this.avatarManager.upload(file);
-    auth.user!.avatar = result.key;
-    auth.user!.avatarVersion = result.version;
+    const avatarRecord = await Avatar.create({ key: result.key, version: result.version });
+
+    auth.user!.avatarId = avatarRecord.id;
     await auth.user!.save();
 
-    return response.ok({ url: result.url });
+    return response.ok({ avatar: `/avatar/${auth.user!.id}?v=${avatarRecord.version}` });
   }
 }
 ```

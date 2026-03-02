@@ -38,15 +38,11 @@ export async function configure(command: InstanceType<typeof Configure>) {
     command.app.appRoot.pathname,
     'database',
     'migrations',
-    'add_avatar_version_to_users.ts',
+    'create_avatars_table.ts',
   );
 
   if (!existsSync(migrationFilePath)) {
-    await codemods.makeUsingStub(
-      stubsRoot,
-      'database/migrations/add_avatar_version_to_users.stub',
-      {},
-    );
+    await codemods.makeUsingStub(stubsRoot, 'database/migrations/create_avatars_table.stub', {});
   }
 }
 
