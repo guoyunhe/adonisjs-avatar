@@ -25,6 +25,12 @@ export default defineConfig({
   height: 256,
 
   /**
+   * Output image format for stored avatars.
+   * Requires the 'sharp' package to be installed when converting formats.
+   */
+  format: 'avif',
+
+  /**
    * Allowed file extensions for avatar uploads.
    */
   allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],

@@ -22,6 +22,7 @@ import type { AvatarConfig } from './types.js';
  *   folder: 'avatars',
  *   width: 256,
  *   height: 256,
+ *   format: 'avif',
  *   allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
  *   maxSize: '5mb',
  * })
@@ -33,6 +34,7 @@ export function defineConfig(config: AvatarConfig): AvatarConfig {
     folder: config.folder ?? 'avatars',
     width: config.width ?? 256,
     height: config.height ?? 256,
+    format: config.format ?? 'avif',
     allowedExtensions: config.allowedExtensions ?? ['jpg', 'jpeg', 'png', 'webp', 'gif'],
     maxSize: config.maxSize ?? '5mb',
   };

@@ -23,10 +23,10 @@ type AvatarService = Pick<AvatarManager, 'upload' | 'delete' | 'getUrl' | 'getSi
  * const result = await avatar.upload(file)
  *
  * // Delete an avatar
- * await avatar.delete('avatars/cuid.jpg')
+ * await avatar.delete('avatars/cuid.avif')
  *
  * // Get the public URL
- * const url = await avatar.getUrl('avatars/cuid.jpg')
+ * const url = await avatar.getUrl('avatars/cuid.avif')
  * ```
  */
 let avatarManager: AvatarManager;

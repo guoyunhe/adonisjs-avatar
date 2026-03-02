@@ -109,6 +109,7 @@ test.group('defineConfig', () => {
     assert.equal(config.folder, 'avatars');
     assert.equal(config.width, 256);
     assert.equal(config.height, 256);
+    assert.equal(config.format, 'avif');
     assert.deepEqual(config.allowedExtensions, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
     assert.equal(config.maxSize, '5mb');
   });
@@ -118,6 +119,7 @@ test.group('defineConfig', () => {
       folder: 'profile-pics',
       width: 128,
       height: 128,
+      format: 'webp',
       allowedExtensions: ['jpg', 'png'],
       maxSize: '2mb',
       disk: 's3',
@@ -125,6 +127,7 @@ test.group('defineConfig', () => {
     assert.equal(config.folder, 'profile-pics');
     assert.equal(config.width, 128);
     assert.equal(config.height, 128);
+    assert.equal(config.format, 'webp');
     assert.deepEqual(config.allowedExtensions, ['jpg', 'png']);
     assert.equal(config.maxSize, '2mb');
     assert.equal(config.disk, 's3');
@@ -202,7 +205,7 @@ test.group('AvatarManager - upload', (group) => {
     assert.isString(result.key);
     assert.isNumber(result.version);
     assert.isAbove(result.version, 0);
-    assert.match(result.key, /^avatars\/.+\.jpg$/);
+    assert.match(result.key, /^avatars\/.+\.avif$/);
     assert.isString(result.url);
     assert.include(result.url!, result.key);
     assert.include(result.url!, `v=${result.version}`);
@@ -222,7 +225,14 @@ test.group('AvatarManager - upload', (group) => {
     const customManager = new AvatarManager(disk, defineConfig({ folder: 'profile-pics' }));
     const file = await createRealImageFile(tmpDir, 'folder-test.jpg');
     const result = await customManager.upload(file);
-    assert.match(result.key, /^profile-pics\/.+\.jpg$/);
+    assert.match(result.key, /^profile-pics\/.+\.avif$/);
+  });
+
+  test('uses the configured output format', async ({ assert }) => {
+    const customManager = new AvatarManager(disk, defineConfig({ format: 'png' }));
+    const file = await createRealImageFile(tmpDir, 'format-test.jpg');
+    const result = await customManager.upload(file);
+    assert.match(result.key, /^avatars\/.+\.png$/);
   });
 });
 

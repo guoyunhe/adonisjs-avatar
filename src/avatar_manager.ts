@@ -45,17 +45,18 @@ function parseSize(size: string | number): number {
  *   folder: 'avatars',
  *   width: 256,
  *   height: 256,
+ *   format: 'avif',
  *   allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
  *   maxSize: '5mb',
  * })
  *
  * // Upload an avatar
  * const result = await manager.upload(file)
- * console.log(result.key)  // 'avatars/cuid.jpg'
+ * console.log(result.key)  // 'avatars/cuid.avif'
  * console.log(result.url)  // 'https://...' or undefined
  *
  * // Delete an avatar
- * await manager.delete('avatars/cuid.jpg')
+ * await manager.delete('avatars/cuid.avif')
  * ```
  */
 export class AvatarManager {
@@ -68,6 +69,7 @@ export class AvatarManager {
       folder: config.folder ?? 'avatars',
       width: config.width ?? 256,
       height: config.height ?? 256,
+      format: config.format ?? 'avif',
       allowedExtensions: config.allowedExtensions ?? ['jpg', 'jpeg', 'png', 'webp', 'gif'],
       maxSize: config.maxSize ?? '5mb',
     };
@@ -97,11 +99,12 @@ export class AvatarManager {
   async upload(file: MultipartFile): Promise<AvatarUploadResult> {
     this.#validate(file);
 
-    const ext = file.extname?.toLowerCase() ?? 'jpg';
-    const key = `${this.#config.folder}/${randomUUID()}.${ext}`;
+    const sourceExt = file.extname?.toLowerCase() ?? 'jpg';
+    const outputExt = this.#normalizeFormat(this.#config.format);
+    const key = `${this.#config.folder}/${randomUUID()}.${outputExt}`;
     const version = Date.now();
 
-    const buffer = await this.#process(file.tmpPath!, ext);
+    const buffer = await this.#process(file.tmpPath!, outputExt, sourceExt);
     await this.#disk.put(key, buffer);
 
     let url: string | undefined;
@@ -198,7 +201,7 @@ export class AvatarManager {
    * Processes the avatar image using sharp if available.
    * Returns a Buffer with the resized image, or reads the original file if sharp is unavailable.
    */
-  async #process(tmpPath: string, ext: string): Promise<Buffer> {
+  async #process(tmpPath: string, outputFormat: string, sourceExt: string): Promise<Buffer> {
     let sharp: typeof import('sharp') | undefined;
     try {
       sharp = (await import('sharp')).default;
@@ -207,13 +210,6 @@ export class AvatarManager {
     }
 
     if (sharp) {
-      let outputFormat: 'gif' | 'png' | 'jpeg' = 'jpeg';
-      if (ext === 'gif') {
-        outputFormat = 'gif';
-      } else if (ext === 'png') {
-        outputFormat = 'png';
-      }
-
       return sharp(tmpPath)
         .resize(this.#config.width, this.#config.height, {
           fit: 'cover',
@@ -223,7 +219,15 @@ export class AvatarManager {
         .toBuffer();
     }
 
+    if (this.#normalizeFormat(sourceExt) !== outputFormat) {
+      throw new Error('Avatar format conversion requires the "sharp" package to be installed.');
+    }
+
     return readFile(tmpPath);
+  }
+
+  #normalizeFormat(format: string): string {
+    return format === 'jpg' ? 'jpeg' : format;
   }
 
   #appendVersion(url: string, avatarVersion?: number): string {

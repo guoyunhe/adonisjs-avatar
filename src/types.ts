@@ -47,6 +47,12 @@ export interface AvatarConfig {
    * Defaults to '5mb'.
    */
   maxSize?: string | number;
+
+  /**
+   * Output image format for stored avatars.
+   * Defaults to 'avif'.
+   */
+  format?: 'avif' | 'webp' | 'png' | 'jpeg' | 'jpg' | 'gif';
 }
 
 /**
