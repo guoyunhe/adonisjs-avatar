@@ -1,4 +1,4 @@
-import { defineConfig } from 'adonisjs-avatar'
+import { defineConfig } from 'adonisjs-avatar';
 
 export default defineConfig({
   /**
@@ -33,4 +33,4 @@ export default defineConfig({
    * Maximum file size allowed for avatar uploads.
    */
   maxSize: '5mb',
-})
+});

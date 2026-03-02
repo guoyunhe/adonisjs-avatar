@@ -63,6 +63,7 @@
     "@adonisjs/bodyparser": "^11.0.0",
     "@adonisjs/core": "^7.0.0",
     "@adonisjs/drive": "^4.0.0",
+    "@adonisjs/lucid": "^22.0.0",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@japa/assert": "^4.0.0",

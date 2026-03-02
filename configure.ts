@@ -31,7 +31,7 @@ export async function configure(command: InstanceType<typeof Configure>) {
   // Create the config file if it does not exist
   const configFilePath = join(command.app.appRoot.pathname, 'config', 'avatar.ts');
   if (!existsSync(configFilePath)) {
-    await codemods.makeUsingStub(stubsRoot, 'config/avatar.stub', {});
+    await codemods.makeUsingStub(stubsRoot, 'config/avatar.ts', {});
   }
 
   const migrationFilePath = join(
@@ -42,7 +42,7 @@ export async function configure(command: InstanceType<typeof Configure>) {
   );
 
   if (!existsSync(migrationFilePath)) {
-    await codemods.makeUsingStub(stubsRoot, 'database/migrations/create_avatars_table.stub', {});
+    await codemods.makeUsingStub(stubsRoot, 'database/migrations/create_avatars_table.ts', {});
   }
 }
 
