@@ -52,12 +52,6 @@ export interface AvatarConfig {
   height?: number;
 
   /**
-   * Allowed file extensions for avatar uploads.
-   * Defaults to ['jpg', 'jpeg', 'png', 'webp', 'gif'].
-   */
-  allowedExtensions?: string[];
-
-  /**
    * Maximum file size allowed for avatar uploads.
    * Accepts bytes as number or string with unit (e.g., '5mb').
    * Defaults to '5mb'.

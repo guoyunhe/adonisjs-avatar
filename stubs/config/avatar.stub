@@ -37,11 +37,6 @@ export default defineConfig({
   format: 'avif',
 
   /**
-   * Allowed file extensions for avatar uploads.
-   */
-  allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
-
-  /**
    * Maximum file size allowed for avatar uploads.
    */
   maxSize: '5mb',

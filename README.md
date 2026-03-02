@@ -112,9 +112,6 @@ export default defineConfig({
   // Requires the 'sharp' package to be installed when converting formats
   format: 'avif',
 
-  // Allowed file extensions (default: ['jpg', 'jpeg', 'png', 'webp', 'gif'])
-  allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
-
   // Maximum upload size (default: '5mb')
   maxSize: '5mb',
 });
@@ -209,7 +206,7 @@ export default class UsersController {
 
 #### `upload(file: MultipartFile): Promise<AvatarUploadResult>`
 
-Validates, resizes, and stores the uploaded avatar file in 3 variants: `small`, `medium`, and `large`.
+Validates image MIME type, resizes, and stores the uploaded avatar file in 3 variants: `small`, `medium`, and `large`.
 
 Returns `{ key: string, version: number, variants: { small, medium, large }, url?: string }` where `key` is the medium variant key.
 

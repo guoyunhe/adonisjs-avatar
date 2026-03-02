@@ -111,7 +111,6 @@ test.group('defineConfig', () => {
     assert.equal(config.mediumSize, 256);
     assert.equal(config.largeSize, 1024);
     assert.equal(config.format, 'avif');
-    assert.deepEqual(config.allowedExtensions, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
     assert.equal(config.maxSize, '5mb');
   });
 
@@ -122,7 +121,6 @@ test.group('defineConfig', () => {
       mediumSize: 128,
       largeSize: 512,
       format: 'webp',
-      allowedExtensions: ['jpg', 'png'],
       maxSize: '2mb',
       disk: 's3',
     });
@@ -131,7 +129,6 @@ test.group('defineConfig', () => {
     assert.equal(config.mediumSize, 128);
     assert.equal(config.largeSize, 512);
     assert.equal(config.format, 'webp');
-    assert.deepEqual(config.allowedExtensions, ['jpg', 'png']);
     assert.equal(config.maxSize, '2mb');
     assert.equal(config.disk, 's3');
   });
@@ -157,13 +154,15 @@ test.group('AvatarManager - validation', (group) => {
     await assert.rejects(() => manager.upload(file), /Avatar file has no temporary path/);
   });
 
-  test('throws when file extension is not allowed', async ({ assert }) => {
+  test('throws when file is not an image', async ({ assert }) => {
     const dir = await createTmpDir('ext-check');
     try {
       const tmpPath = join(dir, 'malware.exe');
       await writeFile(tmpPath, 'not-an-image');
       const file = createFakeFile({ extname: 'exe', tmpPath, size: 10 });
-      await assert.rejects(() => manager.upload(file), /not allowed/);
+      file.type = 'application';
+      file.subtype = 'octet-stream';
+      await assert.rejects(() => manager.upload(file), /must be an image/);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

@@ -50,7 +50,6 @@ function parseSize(size: string | number): number {
  *   mediumSize: 256,
  *   largeSize: 1024,
  *   format: 'avif',
- *   allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
  *   maxSize: '5mb',
  * })
  *
@@ -77,7 +76,6 @@ export class AvatarManager {
       width: config.width ?? 256,
       height: config.height ?? 256,
       format: config.format ?? 'avif',
-      allowedExtensions: config.allowedExtensions ?? ['jpg', 'jpeg', 'png', 'webp', 'gif'],
       maxSize: config.maxSize ?? '5mb',
     };
   }
@@ -106,14 +104,13 @@ export class AvatarManager {
   async upload(file: MultipartFile): Promise<AvatarUploadResult> {
     this.#validate(file);
 
-    const sourceExt = file.extname?.toLowerCase() ?? 'jpg';
     const outputExt = this.#normalizeFormat(this.#config.format);
     const baseKey = `${this.#config.folder}/${randomUUID()}`;
     const variants = this.#createVariantKeys(baseKey, outputExt);
     const key = variants.medium;
     const version = Date.now();
 
-    const buffers = await this.#process(file.tmpPath!, outputExt, sourceExt);
+    const buffers = await this.#process(file.tmpPath!, outputExt);
     for (const variantSize of VARIANT_SIZES) {
       await this.#disk.put(variants[variantSize], buffers[variantSize]);
     }
@@ -212,11 +209,17 @@ export class AvatarManager {
       throw new Error('Avatar file has no temporary path. Ensure the file was uploaded correctly.');
     }
 
-    const ext = file.extname?.toLowerCase();
-    if (ext && !this.#config.allowedExtensions.includes(ext)) {
-      throw new Error(
-        `Avatar file extension ".${ext}" is not allowed. Allowed extensions: ${this.#config.allowedExtensions.join(', ')}`,
-      );
+    const contentTypeHeader =
+      file.headers?.['content-type'] ?? file.headers?.['Content-Type'] ?? undefined;
+    const isImageContentType =
+      typeof contentTypeHeader === 'string' && contentTypeHeader.toLowerCase().startsWith('image/');
+
+    if (file.type && file.type !== 'image') {
+      throw new Error('Avatar file must be an image.');
+    }
+
+    if (!file.type && !isImageContentType) {
+      throw new Error('Avatar file must be an image.');
     }
 
     const maxBytes = parseSize(this.#config.maxSize);
@@ -234,7 +237,6 @@ export class AvatarManager {
   async #process(
     tmpPath: string,
     outputFormat: string,
-    sourceExt: string,
   ): Promise<Record<AvatarVariantSize, Buffer>> {
     let sharp: typeof import('sharp') | undefined;
     try {
@@ -245,10 +247,6 @@ export class AvatarManager {
 
     if (!sharp) {
       throw new Error('Avatar resizing requires the "sharp" package to be installed.');
-    }
-
-    if (this.#normalizeFormat(sourceExt) !== outputFormat) {
-      // Conversion handled by sharp below
     }
 
     const format = outputFormat as Parameters<ReturnType<typeof import('sharp')>['toFormat']>[0];
