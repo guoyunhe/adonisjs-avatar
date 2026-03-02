@@ -8,8 +8,30 @@
  */
 
 import type Configure from '@adonisjs/core/commands/configure';
-import { existsSync } from 'node:fs';
+import { existsSync, globSync } from 'node:fs';
 import { join } from 'node:path';
+
+interface RcFileLike {
+  addProvider: (provider: string) => void;
+}
+
+interface CodemodsLike {
+  updateRcFile: (callback: (rcFile: RcFileLike) => void) => Promise<void> | void;
+  makeUsingStub: (
+    stubsRoot: string,
+    stubPath: string,
+    args: Record<string, unknown>,
+  ) => Promise<void>;
+}
+
+export interface ConfigureCommandLike {
+  app: {
+    appRoot: {
+      pathname: string;
+    };
+  };
+  createCodemods: () => Promise<CodemodsLike>;
+}
 
 /**
  * Configure the adonisjs-avatar package.
@@ -20,7 +42,7 @@ import { join } from 'node:path';
  * node ace configure adonisjs-avatar
  * ```
  */
-export async function configure(command: InstanceType<typeof Configure>) {
+export async function configure(command: ConfigureCommandLike | InstanceType<typeof Configure>) {
   const codemods = await command.createCodemods();
 
   // Register the avatar provider
@@ -34,15 +56,20 @@ export async function configure(command: InstanceType<typeof Configure>) {
     await codemods.makeUsingStub(stubsRoot, 'config/avatar.ts', {});
   }
 
-  const migrationFilePath = join(
+  const migrationFileGlob = join(
     command.app.appRoot.pathname,
     'database',
     'migrations',
-    'create_avatars_table.ts',
+    '*_create_avatars_table.ts',
   );
 
-  if (!existsSync(migrationFilePath)) {
-    await codemods.makeUsingStub(stubsRoot, 'database/migrations/create_avatars_table.ts', {});
+  if (globSync(migrationFileGlob).length === 0) {
+    await codemods.makeUsingStub(stubsRoot, 'make/migration/avatars.stub', {
+      migration: {
+        folder: 'database/migrations',
+        fileName: `${Date.now()}_create_avatars_table.ts`,
+      },
+    });
   }
 
   const avatarModelPath = join(command.app.appRoot.pathname, 'app', 'models', 'avatar.ts');
