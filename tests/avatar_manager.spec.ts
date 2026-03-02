@@ -111,7 +111,6 @@ test.group('defineConfig', () => {
     assert.equal(config.mediumSize, 256);
     assert.equal(config.largeSize, 1024);
     assert.equal(config.format, 'avif');
-    assert.equal(config.maxSize, '5mb');
   });
 
   test('allows overriding each option', ({ assert }) => {
@@ -121,7 +120,6 @@ test.group('defineConfig', () => {
       mediumSize: 128,
       largeSize: 512,
       format: 'webp',
-      maxSize: '2mb',
       disk: 's3',
     });
     assert.equal(config.folder, 'profile-pics');
@@ -129,7 +127,6 @@ test.group('defineConfig', () => {
     assert.equal(config.mediumSize, 128);
     assert.equal(config.largeSize, 512);
     assert.equal(config.format, 'webp');
-    assert.equal(config.maxSize, '2mb');
     assert.equal(config.disk, 's3');
   });
 });
@@ -163,19 +160,6 @@ test.group('AvatarManager - validation', (group) => {
       file.type = 'application';
       file.subtype = 'octet-stream';
       await assert.rejects(() => manager.upload(file), /must be an image/);
-    } finally {
-      await rm(dir, { recursive: true, force: true });
-    }
-  });
-
-  test('throws when file exceeds max size', async ({ assert }) => {
-    const dir = await createTmpDir('size-check');
-    try {
-      const tmpPath = join(dir, 'large.jpg');
-      await writeFile(tmpPath, 'x');
-      const tenMb = 10 * 1024 * 1024;
-      const file = createFakeFile({ extname: 'jpg', tmpPath, size: tenMb });
-      await assert.rejects(() => manager.upload(file), /exceeds the maximum allowed size/);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

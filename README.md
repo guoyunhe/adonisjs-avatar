@@ -7,7 +7,7 @@ AdonisJS package for basic avatar uploading with optional image resizing.
 - Upload avatar images from multipart form data
 - Resize and crop images to a square using [sharp](https://sharp.pixelplumbing.com/) (optional)
 - Store avatars using any [AdonisJS Drive](https://docs.adonisjs.com/guides/drive) disk (local, S3, GCS, etc.)
-- Validate file type and size
+- Validate image file type
 - Delete old avatars
 
 ## Install
@@ -111,9 +111,6 @@ export default defineConfig({
   // Output image format for stored avatars (default: 'avif')
   // Requires the 'sharp' package to be installed when converting formats
   format: 'avif',
-
-  // Maximum upload size (default: '5mb')
-  maxSize: '5mb',
 });
 ```
 

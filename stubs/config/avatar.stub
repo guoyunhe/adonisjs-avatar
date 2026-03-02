@@ -36,8 +36,4 @@ export default defineConfig({
    */
   format: 'avif',
 
-  /**
-   * Maximum file size allowed for avatar uploads.
-   */
-  maxSize: '5mb',
 });

@@ -17,27 +17,6 @@ type AvatarVariantSize = 'small' | 'medium' | 'large';
 const VARIANT_SIZES: AvatarVariantSize[] = ['small', 'medium', 'large'];
 
 /**
- * Parses a size string like '5mb' into bytes.
- */
-function parseSize(size: string | number): number {
-  if (typeof size === 'number') return size;
-
-  const units: Record<string, number> = {
-    b: 1,
-    kb: 1024,
-    mb: 1024 * 1024,
-    gb: 1024 * 1024 * 1024,
-  };
-
-  const match = size.toLowerCase().match(/^(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?$/);
-  if (!match) return 5 * 1024 * 1024;
-
-  const value = parseFloat(match[1]);
-  const unit = match[2] ?? 'b';
-  return Math.floor(value * (units[unit] ?? 1));
-}
-
-/**
  * Manages avatar uploads, resizing, and deletion using AdonisJS Drive.
  *
  * @example
@@ -50,7 +29,6 @@ function parseSize(size: string | number): number {
  *   mediumSize: 256,
  *   largeSize: 1024,
  *   format: 'avif',
- *   maxSize: '5mb',
  * })
  *
  * // Upload an avatar
@@ -76,7 +54,6 @@ export class AvatarManager {
       width: config.width ?? 256,
       height: config.height ?? 256,
       format: config.format ?? 'avif',
-      maxSize: config.maxSize ?? '5mb',
     };
   }
 
@@ -220,13 +197,6 @@ export class AvatarManager {
 
     if (!file.type && !isImageContentType) {
       throw new Error('Avatar file must be an image.');
-    }
-
-    const maxBytes = parseSize(this.#config.maxSize);
-    if (file.size > maxBytes) {
-      throw new Error(
-        `Avatar file size (${file.size} bytes) exceeds the maximum allowed size of ${this.#config.maxSize}`,
-      );
     }
   }
 

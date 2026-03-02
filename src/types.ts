@@ -52,13 +52,6 @@ export interface AvatarConfig {
   height?: number;
 
   /**
-   * Maximum file size allowed for avatar uploads.
-   * Accepts bytes as number or string with unit (e.g., '5mb').
-   * Defaults to '5mb'.
-   */
-  maxSize?: string | number;
-
-  /**
    * Output image format for stored avatars.
    * Defaults to 'avif'.
    */

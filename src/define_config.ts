@@ -24,7 +24,6 @@ import type { AvatarConfig } from './types.js';
  *   mediumSize: 256,
  *   largeSize: 1024,
  *   format: 'avif',
- *   maxSize: '5mb',
  * })
  * ```
  */
@@ -38,6 +37,5 @@ export function defineConfig(config: AvatarConfig): AvatarConfig {
     width: config.width,
     height: config.height,
     format: config.format ?? 'avif',
-    maxSize: config.maxSize ?? '5mb',
   };
 }
