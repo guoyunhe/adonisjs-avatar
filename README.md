@@ -27,6 +27,7 @@ This will:
 - Register the `AvatarProvider` in your `adonisrc.ts`
 - Create a `config/avatar.ts` configuration file
 - Create a migration `database/migrations/create_avatars_table.ts`
+- Create an `Avatar` model at `app/models/avatar.ts`
 
 Then run migrations:
 
@@ -63,23 +64,7 @@ export default class extends BaseSchema {
 }
 ```
 
-Define an `Avatar` model and relate it from models that have `avatar_id`.
-
-```ts
-// app/models/avatar.ts
-import { BaseModel, column } from '@adonisjs/lucid/orm';
-
-export default class Avatar extends BaseModel {
-  @column({ isPrimary: true })
-  declare id: number;
-
-  @column()
-  declare key: string;
-
-  @column()
-  declare version: number;
-}
-```
+Relate `Avatar` from models that have `avatar_id`.
 
 ```ts
 // app/models/user.ts

@@ -44,6 +44,11 @@ export async function configure(command: InstanceType<typeof Configure>) {
   if (!existsSync(migrationFilePath)) {
     await codemods.makeUsingStub(stubsRoot, 'database/migrations/create_avatars_table.ts', {});
   }
+
+  const avatarModelPath = join(command.app.appRoot.pathname, 'app', 'models', 'avatar.ts');
+  if (!existsSync(avatarModelPath)) {
+    await codemods.makeUsingStub(stubsRoot, 'app/models/avatar.ts', {});
+  }
 }
 
 /**
