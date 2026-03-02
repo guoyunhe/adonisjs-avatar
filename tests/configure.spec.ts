@@ -27,9 +27,17 @@ test.group('configure', (group) => {
     const providers: string[] = [];
     const createdStubs: string[] = [];
     let migrationFileName: string | undefined;
+    let modelEntityName: string | undefined;
 
     const command: ConfigureCommand = {
-      app: { appRoot: { pathname: appRoot } },
+      app: {
+        appRoot: { pathname: appRoot },
+        generators: {
+          createEntity(name: string) {
+            return { name, path: '', fileName: name };
+          },
+        },
+      },
       async createCodemods() {
         return {
           updateRcFile(callback: (rcFile: { addProvider: (provider: string) => void }) => void) {
@@ -42,11 +50,14 @@ test.group('configure', (group) => {
           async makeUsingStub(
             _stubsRoot: string,
             stubPath: string,
-            args?: { migration?: { fileName?: string } },
+            args?: { migration?: { fileName?: string }; entity?: { name?: string } },
           ) {
             createdStubs.push(stubPath);
             if (stubPath === 'make/migration/avatars.stub') {
               migrationFileName = args?.migration?.fileName;
+            }
+            if (stubPath === 'make/model/avatar.stub') {
+              modelEntityName = args?.entity?.name;
             }
           },
         };
@@ -57,11 +68,12 @@ test.group('configure', (group) => {
 
     assert.deepEqual(providers, ['adonisjs-avatar/avatar_provider']);
     assert.deepEqual(createdStubs.sort(), [
-      'app/models/avatar.ts',
       'config/avatar.ts',
       'make/migration/avatars.stub',
+      'make/model/avatar.stub',
     ]);
     assert.match(migrationFileName!, /^\d+_create_avatars_table\.ts$/);
+    assert.equal(modelEntityName, 'avatar');
   });
 
   test('does not create avatar model stub when model already exists', async ({ assert }) => {
@@ -77,7 +89,14 @@ test.group('configure', (group) => {
     const createdStubs: string[] = [];
 
     const command: ConfigureCommand = {
-      app: { appRoot: { pathname: appRoot } },
+      app: {
+        appRoot: { pathname: appRoot },
+        generators: {
+          createEntity(name: string) {
+            return { name, path: '', fileName: name };
+          },
+        },
+      },
       async createCodemods() {
         return {
           updateRcFile() {},
@@ -90,7 +109,7 @@ test.group('configure', (group) => {
 
     await configure(command);
 
-    assert.notInclude(createdStubs, 'app/models/avatar.ts');
+    assert.notInclude(createdStubs, 'make/model/avatar.stub');
   });
 
   test('does not create avatars migration when one already exists', async ({ assert }) => {
@@ -106,7 +125,14 @@ test.group('configure', (group) => {
     const createdStubs: string[] = [];
 
     const command: ConfigureCommand = {
-      app: { appRoot: { pathname: appRoot } },
+      app: {
+        appRoot: { pathname: appRoot },
+        generators: {
+          createEntity(name: string) {
+            return { name, path: '', fileName: name };
+          },
+        },
+      },
       async createCodemods() {
         return {
           updateRcFile() {},

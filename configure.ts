@@ -29,6 +29,9 @@ export interface ConfigureCommandLike {
     appRoot: {
       pathname: string;
     };
+    generators: {
+      createEntity: (name: string) => unknown;
+    };
   };
   createCodemods: () => Promise<CodemodsLike>;
 }
@@ -74,7 +77,9 @@ export async function configure(command: ConfigureCommandLike | InstanceType<typ
 
   const avatarModelPath = join(command.app.appRoot.pathname, 'app', 'models', 'avatar.ts');
   if (!existsSync(avatarModelPath)) {
-    await codemods.makeUsingStub(stubsRoot, 'app/models/avatar.ts', {});
+    await codemods.makeUsingStub(stubsRoot, 'make/model/avatar.stub', {
+      entity: command.app.generators.createEntity('avatar'),
+    });
   }
 }
 

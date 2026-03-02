@@ -1,0 +1,19 @@
+{{#var modelName = generators.modelName(entity.name)}}
+{{#var modelFileName = generators.modelFileName(entity.name)}}
+{{{
+  exports({
+    to: app.modelsPath(entity.path, modelFileName)
+  })
+}}}
+import { BaseModel, column } from '@adonisjs/lucid/orm';
+
+export default class {{ modelName }} extends BaseModel {
+  @column({ isPrimary: true })
+  declare id: number;
+
+  @column()
+  declare key: string;
+
+  @column()
+  declare version: number;
+}

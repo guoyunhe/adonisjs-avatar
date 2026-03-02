@@ -26,8 +26,8 @@ This will:
 
 - Register the `AvatarProvider` in your `adonisrc.ts`
 - Create a `config/avatar.ts` configuration file
-- Create a migration `database/migrations/create_avatars_table.ts`
-- Create an `Avatar` model at `app/models/avatar.ts`
+- Create a migration like `database/migrations/<timestamp>_create_avatars_table.ts` (skip if it already exists)
+- Create an `Avatar` model at `app/models/avatar.ts` (skip if it already exists)
 
 Then run migrations:
 
