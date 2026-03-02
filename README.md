@@ -10,16 +10,10 @@ AdonisJS package for basic avatar uploading with optional image resizing.
 - Validate file type and size
 - Delete old avatars
 
-## Installation
+## Install
 
 ```bash
-npm install adonisjs-avatar
-```
-
-### Install optional image processing dependency
-
-```bash
-npm install sharp
+npm install -S adonisjs-avatar sharp
 ```
 
 ### Configure
