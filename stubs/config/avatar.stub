@@ -16,16 +16,19 @@ export default defineConfig({
   folder: 'avatars',
 
   /**
-   * Width of the resized avatar in pixels.
-   * Requires the 'sharp' package to be installed.
+   * Small avatar size in pixels.
    */
-  width: 256,
+  smallSize: 64,
 
   /**
-   * Height of the resized avatar in pixels.
-   * Requires the 'sharp' package to be installed.
+   * Medium avatar size in pixels.
    */
-  height: 256,
+  mediumSize: 256,
+
+  /**
+   * Large avatar size in pixels.
+   */
+  largeSize: 1024,
 
   /**
    * Output image format for stored avatars.

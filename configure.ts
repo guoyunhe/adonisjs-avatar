@@ -8,7 +8,7 @@
  */
 
 import type Configure from '@adonisjs/core/commands/configure';
-import { existsSync } from 'node:fs';
+import { existsSync, globSync } from 'node:fs';
 import { join } from 'node:path';
 
 interface RcFileLike {
@@ -59,16 +59,28 @@ export async function configure(command: ConfigureCommandLike | InstanceType<typ
     await codemods.makeUsingStub(stubsRoot, 'config/avatar.stub', {});
   }
 
-  await codemods.makeUsingStub(stubsRoot, 'make/migration/avatars.stub', {
-    migration: {
-      folder: 'database/migrations',
-      fileName: `${Date.now()}_create_avatars_table.ts`,
-    },
-  });
+  const migrationFileGlob = join(
+    command.app.appRoot.pathname,
+    'database',
+    'migrations',
+    '*_create_avatars_table.ts',
+  );
 
-  await codemods.makeUsingStub(stubsRoot, 'make/model/avatar.stub', {
-    entity: command.app.generators.createEntity('avatar'),
-  });
+  if (globSync(migrationFileGlob).length === 0) {
+    await codemods.makeUsingStub(stubsRoot, 'make/migration/avatars.stub', {
+      migration: {
+        folder: 'database/migrations',
+        fileName: `${Date.now()}_create_avatars_table.ts`,
+      },
+    });
+  }
+
+  const avatarModelPath = join(command.app.appRoot.pathname, 'app', 'models', 'avatar.ts');
+  if (!existsSync(avatarModelPath)) {
+    await codemods.makeUsingStub(stubsRoot, 'make/model/avatar.stub', {
+      entity: command.app.generators.createEntity('avatar'),
+    });
+  }
 }
 
 /**

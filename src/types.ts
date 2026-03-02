@@ -24,14 +24,30 @@ export interface AvatarConfig {
   folder?: string;
 
   /**
-   * Width of the resized avatar in pixels.
+   * Size of the small avatar variant in pixels.
+   * Defaults to 64.
+   */
+  smallSize?: number;
+
+  /**
+   * Size of the medium avatar variant in pixels.
    * Defaults to 256.
+   */
+  mediumSize?: number;
+
+  /**
+   * Size of the large avatar variant in pixels.
+   * Defaults to 1024.
+   */
+  largeSize?: number;
+
+  /**
+   * Deprecated alias for mediumSize.
    */
   width?: number;
 
   /**
-   * Height of the resized avatar in pixels.
-   * Defaults to 256.
+   * Deprecated and ignored. Avatars are always square.
    */
   height?: number;
 
@@ -69,6 +85,15 @@ export interface AvatarUploadResult {
    * pass it to getUrl/getSignedUrl.
    */
   version: number;
+
+  /**
+   * Storage keys for all generated avatar variants.
+   */
+  variants: {
+    small: string;
+    medium: string;
+    large: string;
+  };
 
   /**
    * The public URL of the uploaded avatar (if available)

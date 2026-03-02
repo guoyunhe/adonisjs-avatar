@@ -107,8 +107,9 @@ test.group('defineConfig', () => {
   test('returns defaults when no options are provided', ({ assert }) => {
     const config = defineConfig({});
     assert.equal(config.folder, 'avatars');
-    assert.equal(config.width, 256);
-    assert.equal(config.height, 256);
+    assert.equal(config.smallSize, 64);
+    assert.equal(config.mediumSize, 256);
+    assert.equal(config.largeSize, 1024);
     assert.equal(config.format, 'avif');
     assert.deepEqual(config.allowedExtensions, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
     assert.equal(config.maxSize, '5mb');
@@ -117,16 +118,18 @@ test.group('defineConfig', () => {
   test('allows overriding each option', ({ assert }) => {
     const config = defineConfig({
       folder: 'profile-pics',
-      width: 128,
-      height: 128,
+      smallSize: 32,
+      mediumSize: 128,
+      largeSize: 512,
       format: 'webp',
       allowedExtensions: ['jpg', 'png'],
       maxSize: '2mb',
       disk: 's3',
     });
     assert.equal(config.folder, 'profile-pics');
-    assert.equal(config.width, 128);
-    assert.equal(config.height, 128);
+    assert.equal(config.smallSize, 32);
+    assert.equal(config.mediumSize, 128);
+    assert.equal(config.largeSize, 512);
     assert.equal(config.format, 'webp');
     assert.deepEqual(config.allowedExtensions, ['jpg', 'png']);
     assert.equal(config.maxSize, '2mb');
@@ -205,14 +208,17 @@ test.group('AvatarManager - upload', (group) => {
     assert.isString(result.key);
     assert.isNumber(result.version);
     assert.isAbove(result.version, 0);
-    assert.match(result.key, /^avatars\/.+\.avif$/);
+    assert.match(result.key, /^avatars\/.+_medium\.avif$/);
+    assert.match(result.variants.small, /^avatars\/.+_small\.avif$/);
+    assert.match(result.variants.medium, /^avatars\/.+_medium\.avif$/);
+    assert.match(result.variants.large, /^avatars\/.+_large\.avif$/);
     assert.isString(result.url);
     assert.include(result.url!, result.key);
     assert.include(result.url!, `v=${result.version}`);
 
-    // Verify file exists on disk
-    const exists = await disk.exists(result.key);
-    assert.isTrue(exists);
+    assert.isTrue(await disk.exists(result.variants.small));
+    assert.isTrue(await disk.exists(result.variants.medium));
+    assert.isTrue(await disk.exists(result.variants.large));
   });
 
   test('marks the file as moved after upload', async ({ assert }) => {
@@ -225,14 +231,14 @@ test.group('AvatarManager - upload', (group) => {
     const customManager = new AvatarManager(disk, defineConfig({ folder: 'profile-pics' }));
     const file = await createRealImageFile(tmpDir, 'folder-test.jpg');
     const result = await customManager.upload(file);
-    assert.match(result.key, /^profile-pics\/.+\.avif$/);
+    assert.match(result.key, /^profile-pics\/.+_medium\.avif$/);
   });
 
   test('uses the configured output format', async ({ assert }) => {
     const customManager = new AvatarManager(disk, defineConfig({ format: 'png' }));
     const file = await createRealImageFile(tmpDir, 'format-test.jpg');
     const result = await customManager.upload(file);
-    assert.match(result.key, /^avatars\/.+\.png$/);
+    assert.match(result.key, /^avatars\/.+_medium\.png$/);
   });
 });
 
@@ -256,16 +262,17 @@ test.group('AvatarManager - delete', (group) => {
 
   test('deletes an uploaded avatar', async ({ assert }) => {
     const file = await createRealImageFile(tmpDir, 'to-delete.jpg');
-    const { key } = await manager.upload(file);
+    const { key, variants } = await manager.upload(file);
 
-    // Verify file exists
-    assert.isTrue(await disk.exists(key));
+    assert.isTrue(await disk.exists(variants.small));
+    assert.isTrue(await disk.exists(variants.medium));
+    assert.isTrue(await disk.exists(variants.large));
 
-    // Delete it
     await manager.delete(key);
 
-    // Verify it's gone
-    assert.isFalse(await disk.exists(key));
+    assert.isFalse(await disk.exists(variants.small));
+    assert.isFalse(await disk.exists(variants.medium));
+    assert.isFalse(await disk.exists(variants.large));
   });
 });
 
@@ -295,6 +302,15 @@ test.group('AvatarManager - getUrl', (group) => {
     assert.isString(url);
     assert.include(url, key);
     assert.include(url, `v=${version}`);
+  });
+
+  test('returns the url for the requested variant size', async ({ assert }) => {
+    const file = await createRealImageFile(tmpDir, 'url-size-test.jpg');
+    const { key, version, variants } = await manager.upload(file);
+
+    const smallUrl = await manager.getUrl(key, version, 'small');
+    assert.include(smallUrl, variants.small);
+    assert.include(smallUrl, `v=${version}`);
   });
 
   test('appends version query param to url', async ({ assert }) => {

@@ -103,10 +103,10 @@ export default defineConfig({
   // Folder within the disk to store avatars (default: 'avatars')
   folder: 'avatars',
 
-  // Resize dimensions in pixels (default: 256x256)
-  // Requires the 'sharp' package to be installed
-  width: 256,
-  height: 256,
+  // Avatar sizes in pixels (defaults: 64 / 256 / 1024)
+  smallSize: 64,
+  mediumSize: 256,
+  largeSize: 1024,
 
   // Output image format for stored avatars (default: 'avif')
   // Requires the 'sharp' package to be installed when converting formats
@@ -209,21 +209,21 @@ export default class UsersController {
 
 #### `upload(file: MultipartFile): Promise<AvatarUploadResult>`
 
-Validates, optionally resizes, and stores the uploaded avatar file.
+Validates, resizes, and stores the uploaded avatar file in 3 variants: `small`, `medium`, and `large`.
 
-Returns `{ key: string, version: number, url?: string }` where `key` is the storage key, `version` is the cache version, and `url` is the public URL (if available for the disk).
+Returns `{ key: string, version: number, variants: { small, medium, large }, url?: string }` where `key` is the medium variant key.
 
 #### `delete(key: string): Promise<void>`
 
 Deletes the avatar at the given storage key.
 
-#### `getUrl(key: string, avatarVersion?: number): Promise<string>`
+#### `getUrl(key: string, avatarVersion?: number, variantSize?: 'small' | 'medium' | 'large'): Promise<string>`
 
-Returns the public URL for the avatar at the given storage key.
+Returns the public URL for the requested avatar variant (defaults to `medium`).
 
 When `avatarVersion` is provided, the URL gets `?v=<avatarVersion>` (or `&v=...`), so browsers fetch the updated avatar after each upload.
 
-#### `getSignedUrl(key: string, options?: { expiresIn?: string | number }, avatarVersion?: number): Promise<string>`
+#### `getSignedUrl(key: string, options?: { expiresIn?: string | number }, avatarVersion?: number, variantSize?: 'small' | 'medium' | 'large'): Promise<string>`
 
 Returns a signed (temporary) URL for the avatar at the given storage key.
 

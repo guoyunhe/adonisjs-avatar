@@ -10,8 +10,11 @@
 import type { MultipartFile } from '@adonisjs/bodyparser';
 import type { Disk } from '@adonisjs/drive';
 import { randomUUID } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
 import type { AvatarConfig, AvatarUploadResult } from './types.js';
+
+type AvatarVariantSize = 'small' | 'medium' | 'large';
+
+const VARIANT_SIZES: AvatarVariantSize[] = ['small', 'medium', 'large'];
 
 /**
  * Parses a size string like '5mb' into bytes.
@@ -43,8 +46,9 @@ function parseSize(size: string | number): number {
  *
  * const manager = new AvatarManager(disk, {
  *   folder: 'avatars',
- *   width: 256,
- *   height: 256,
+ *   smallSize: 64,
+ *   mediumSize: 256,
+ *   largeSize: 1024,
  *   format: 'avif',
  *   allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
  *   maxSize: '5mb',
@@ -52,7 +56,7 @@ function parseSize(size: string | number): number {
  *
  * // Upload an avatar
  * const result = await manager.upload(file)
- * console.log(result.key)  // 'avatars/cuid.avif'
+ * console.log(result.key)  // 'avatars/cuid_medium.avif'
  * console.log(result.url)  // 'https://...' or undefined
  *
  * // Delete an avatar
@@ -67,6 +71,9 @@ export class AvatarManager {
     this.#disk = disk;
     this.#config = {
       folder: config.folder ?? 'avatars',
+      smallSize: config.smallSize ?? 64,
+      mediumSize: config.mediumSize ?? config.width ?? 256,
+      largeSize: config.largeSize ?? 1024,
       width: config.width ?? 256,
       height: config.height ?? 256,
       format: config.format ?? 'avif',
@@ -101,11 +108,15 @@ export class AvatarManager {
 
     const sourceExt = file.extname?.toLowerCase() ?? 'jpg';
     const outputExt = this.#normalizeFormat(this.#config.format);
-    const key = `${this.#config.folder}/${randomUUID()}.${outputExt}`;
+    const baseKey = `${this.#config.folder}/${randomUUID()}`;
+    const variants = this.#createVariantKeys(baseKey, outputExt);
+    const key = variants.medium;
     const version = Date.now();
 
-    const buffer = await this.#process(file.tmpPath!, outputExt, sourceExt);
-    await this.#disk.put(key, buffer);
+    const buffers = await this.#process(file.tmpPath!, outputExt, sourceExt);
+    for (const variantSize of VARIANT_SIZES) {
+      await this.#disk.put(variants[variantSize], buffers[variantSize]);
+    }
 
     let url: string | undefined;
     try {
@@ -116,7 +127,7 @@ export class AvatarManager {
 
     file.markAsMoved(key, key);
 
-    return { key, version, url };
+    return { key, version, variants, url };
   }
 
   /**
@@ -133,7 +144,19 @@ export class AvatarManager {
    * ```
    */
   async delete(key: string): Promise<void> {
-    await this.#disk.delete(key);
+    const variants = this.#variantsFromAnyKey(key);
+
+    for (const variantSize of VARIANT_SIZES) {
+      try {
+        await this.#disk.delete(variants[variantSize]);
+      } catch {
+        // ignore missing variant files
+      }
+    }
+
+    if (!Object.values(variants).includes(key)) {
+      await this.#disk.delete(key);
+    }
   }
 
   /**
@@ -147,8 +170,13 @@ export class AvatarManager {
    * const url = await avatarManager.getUrl(user.avatar)
    * ```
    */
-  async getUrl(key: string, avatarVersion?: number): Promise<string> {
-    const url = await this.#disk.getUrl(key);
+  async getUrl(
+    key: string,
+    avatarVersion?: number,
+    variantSize: AvatarVariantSize = 'medium',
+  ): Promise<string> {
+    const variantKey = this.#variantKeyFromAnyKey(key, variantSize);
+    const url = await this.#disk.getUrl(variantKey);
     return this.#appendVersion(url, avatarVersion);
   }
 
@@ -168,8 +196,10 @@ export class AvatarManager {
     key: string,
     options?: { expiresIn?: string | number },
     avatarVersion?: number,
+    variantSize: AvatarVariantSize = 'medium',
   ): Promise<string> {
-    const url = await this.#disk.getSignedUrl(key, options);
+    const variantKey = this.#variantKeyFromAnyKey(key, variantSize);
+    const url = await this.#disk.getSignedUrl(variantKey, options);
     return this.#appendVersion(url, avatarVersion);
   }
 
@@ -201,7 +231,11 @@ export class AvatarManager {
    * Processes the avatar image using sharp if available.
    * Returns a Buffer with the resized image, or reads the original file if sharp is unavailable.
    */
-  async #process(tmpPath: string, outputFormat: string, sourceExt: string): Promise<Buffer> {
+  async #process(
+    tmpPath: string,
+    outputFormat: string,
+    sourceExt: string,
+  ): Promise<Record<AvatarVariantSize, Buffer>> {
     let sharp: typeof import('sharp') | undefined;
     try {
       sharp = (await import('sharp')).default;
@@ -209,21 +243,79 @@ export class AvatarManager {
       // sharp is not installed - skip image processing
     }
 
-    if (sharp) {
-      return sharp(tmpPath)
-        .resize(this.#config.width, this.#config.height, {
-          fit: 'cover',
-          position: 'centre',
-        })
-        .toFormat(outputFormat as Parameters<ReturnType<typeof import('sharp')>['toFormat']>[0])
-        .toBuffer();
+    if (!sharp) {
+      throw new Error('Avatar resizing requires the "sharp" package to be installed.');
     }
 
     if (this.#normalizeFormat(sourceExt) !== outputFormat) {
-      throw new Error('Avatar format conversion requires the "sharp" package to be installed.');
+      // Conversion handled by sharp below
     }
 
-    return readFile(tmpPath);
+    const format = outputFormat as Parameters<ReturnType<typeof import('sharp')>['toFormat']>[0];
+    const small = await sharp(tmpPath)
+      .resize(this.#config.smallSize, this.#config.smallSize, {
+        fit: 'cover',
+        position: 'centre',
+      })
+      .toFormat(format)
+      .toBuffer();
+
+    const medium = await sharp(tmpPath)
+      .resize(this.#config.mediumSize, this.#config.mediumSize, {
+        fit: 'cover',
+        position: 'centre',
+      })
+      .toFormat(format)
+      .toBuffer();
+
+    const large = await sharp(tmpPath)
+      .resize(this.#config.largeSize, this.#config.largeSize, {
+        fit: 'cover',
+        position: 'centre',
+      })
+      .toFormat(format)
+      .toBuffer();
+
+    return { small, medium, large };
+  }
+
+  #createVariantKeys(baseKey: string, outputExt: string): Record<AvatarVariantSize, string> {
+    return {
+      small: `${baseKey}_small.${outputExt}`,
+      medium: `${baseKey}_medium.${outputExt}`,
+      large: `${baseKey}_large.${outputExt}`,
+    };
+  }
+
+  #variantsFromAnyKey(key: string): Record<AvatarVariantSize, string> {
+    const match = key.match(/^(.*?)(?:_(small|medium|large))\.([^./]+)$/);
+    if (match) {
+      const baseKey = match[1];
+      const ext = match[3];
+      return this.#createVariantKeys(baseKey, ext);
+    }
+
+    const legacyMatch = key.match(/^(.*)\.([^./]+)$/);
+    if (legacyMatch) {
+      const baseKey = legacyMatch[1];
+      const ext = legacyMatch[2];
+
+      return {
+        small: `${baseKey}_small.${ext}`,
+        medium: key,
+        large: `${baseKey}_large.${ext}`,
+      };
+    }
+
+    return {
+      small: `${key}_small`,
+      medium: key,
+      large: `${key}_large`,
+    };
+  }
+
+  #variantKeyFromAnyKey(key: string, variantSize: AvatarVariantSize): string {
+    return this.#variantsFromAnyKey(key)[variantSize];
   }
 
   #normalizeFormat(format: string): string {
