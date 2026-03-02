@@ -16,19 +16,13 @@ export default defineConfig({
   folder: 'avatars',
 
   /**
-   * Small avatar size in pixels.
+   * Avatar variant sizes in pixels.
    */
-  smallSize: 64,
-
-  /**
-   * Medium avatar size in pixels.
-   */
-  mediumSize: 256,
-
-  /**
-   * Large avatar size in pixels.
-   */
-  largeSize: 1024,
+  sizes: {
+    small: 64,
+    medium: 256,
+    large: 1024,
+  },
 
   /**
    * Output image format for stored avatars.

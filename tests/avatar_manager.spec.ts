@@ -107,25 +107,31 @@ test.group('defineConfig', () => {
   test('returns defaults when no options are provided', ({ assert }) => {
     const config = defineConfig({});
     assert.equal(config.folder, 'avatars');
-    assert.equal(config.smallSize, 64);
-    assert.equal(config.mediumSize, 256);
-    assert.equal(config.largeSize, 1024);
+    assert.deepEqual(config.sizes, {
+      small: 64,
+      medium: 256,
+      large: 1024,
+    });
     assert.equal(config.format, 'avif');
   });
 
   test('allows overriding each option', ({ assert }) => {
     const config = defineConfig({
       folder: 'profile-pics',
-      smallSize: 32,
-      mediumSize: 128,
-      largeSize: 512,
+      sizes: {
+        small: 32,
+        medium: 128,
+        large: 512,
+      },
       format: 'webp',
       disk: 's3',
     });
     assert.equal(config.folder, 'profile-pics');
-    assert.equal(config.smallSize, 32);
-    assert.equal(config.mediumSize, 128);
-    assert.equal(config.largeSize, 512);
+    assert.deepEqual(config.sizes, {
+      small: 32,
+      medium: 128,
+      large: 512,
+    });
     assert.equal(config.format, 'webp');
     assert.equal(config.disk, 's3');
   });

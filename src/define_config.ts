@@ -20,20 +20,31 @@ import type { AvatarConfig } from './types.js';
  * export default defineConfig({
  *   disk: 'local',
  *   folder: 'avatars',
- *   smallSize: 64,
- *   mediumSize: 256,
- *   largeSize: 1024,
+ *   sizes: {
+ *     small: 64,
+ *     medium: 256,
+ *     large: 1024,
+ *   },
  *   format: 'avif',
  * })
  * ```
  */
 export function defineConfig(config: AvatarConfig): AvatarConfig {
+  const small = config.sizes?.small ?? config.smallSize ?? 64;
+  const medium = config.sizes?.medium ?? config.mediumSize ?? config.width ?? 256;
+  const large = config.sizes?.large ?? config.largeSize ?? 1024;
+
   return {
     disk: config.disk,
     folder: config.folder ?? 'avatars',
-    smallSize: config.smallSize ?? 64,
-    mediumSize: config.mediumSize ?? config.width ?? 256,
-    largeSize: config.largeSize ?? 1024,
+    sizes: {
+      small,
+      medium,
+      large,
+    },
+    smallSize: small,
+    mediumSize: medium,
+    largeSize: large,
     width: config.width,
     height: config.height,
     format: config.format ?? 'avif',

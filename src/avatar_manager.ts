@@ -10,7 +10,7 @@
 import type { MultipartFile } from '@adonisjs/bodyparser';
 import type { Disk } from '@adonisjs/drive';
 import { randomUUID } from 'node:crypto';
-import type { AvatarConfig, AvatarUploadResult } from './types.js';
+import type { AvatarConfig, AvatarSizes, AvatarUploadResult } from './types.js';
 
 type AvatarVariantSize = 'small' | 'medium' | 'large';
 
@@ -25,9 +25,11 @@ const VARIANT_SIZES: AvatarVariantSize[] = ['small', 'medium', 'large'];
  *
  * const manager = new AvatarManager(disk, {
  *   folder: 'avatars',
- *   smallSize: 64,
- *   mediumSize: 256,
- *   largeSize: 1024,
+ *   sizes: {
+ *     small: 64,
+ *     medium: 256,
+ *     large: 1024,
+ *   },
  *   format: 'avif',
  * })
  *
@@ -42,17 +44,23 @@ const VARIANT_SIZES: AvatarVariantSize[] = ['small', 'medium', 'large'];
  */
 export class AvatarManager {
   #disk: Disk;
-  #config: Required<Omit<AvatarConfig, 'disk'>>;
+  #config: {
+    folder: string;
+    format: NonNullable<AvatarConfig['format']>;
+    sizes: AvatarSizes;
+  };
 
   constructor(disk: Disk, config: AvatarConfig) {
+    const sizes: AvatarSizes = {
+      small: config.sizes?.small ?? config.smallSize ?? 64,
+      medium: config.sizes?.medium ?? config.mediumSize ?? config.width ?? 256,
+      large: config.sizes?.large ?? config.largeSize ?? 1024,
+    };
+
     this.#disk = disk;
     this.#config = {
       folder: config.folder ?? 'avatars',
-      smallSize: config.smallSize ?? 64,
-      mediumSize: config.mediumSize ?? config.width ?? 256,
-      largeSize: config.largeSize ?? 1024,
-      width: config.width ?? 256,
-      height: config.height ?? 256,
+      sizes,
       format: config.format ?? 'avif',
     };
   }
@@ -221,7 +229,7 @@ export class AvatarManager {
 
     const format = outputFormat as Parameters<ReturnType<typeof import('sharp')>['toFormat']>[0];
     const small = await sharp(tmpPath)
-      .resize(this.#config.smallSize, this.#config.smallSize, {
+      .resize(this.#config.sizes.small, this.#config.sizes.small, {
         fit: 'cover',
         position: 'centre',
       })
@@ -229,7 +237,7 @@ export class AvatarManager {
       .toBuffer();
 
     const medium = await sharp(tmpPath)
-      .resize(this.#config.mediumSize, this.#config.mediumSize, {
+      .resize(this.#config.sizes.medium, this.#config.sizes.medium, {
         fit: 'cover',
         position: 'centre',
       })
@@ -237,7 +245,7 @@ export class AvatarManager {
       .toBuffer();
 
     const large = await sharp(tmpPath)
-      .resize(this.#config.largeSize, this.#config.largeSize, {
+      .resize(this.#config.sizes.large, this.#config.sizes.large, {
         fit: 'cover',
         position: 'centre',
       })

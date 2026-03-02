@@ -104,9 +104,11 @@ export default defineConfig({
   folder: 'avatars',
 
   // Avatar sizes in pixels (defaults: 64 / 256 / 1024)
-  smallSize: 64,
-  mediumSize: 256,
-  largeSize: 1024,
+  sizes: {
+    small: 64,
+    medium: 256,
+    large: 1024,
+  },
 
   // Output image format for stored avatars (default: 'avif')
   // Requires the 'sharp' package to be installed when converting formats

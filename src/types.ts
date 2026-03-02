@@ -10,6 +10,23 @@
 /**
  * Options for configuring the avatar package
  */
+export interface AvatarSizes {
+  /**
+   * Size of the small avatar variant in pixels.
+   */
+  small: number;
+
+  /**
+   * Size of the medium avatar variant in pixels.
+   */
+  medium: number;
+
+  /**
+   * Size of the large avatar variant in pixels.
+   */
+  large: number;
+}
+
 export interface AvatarConfig {
   /**
    * The drive disk to use for storing avatars.
@@ -24,20 +41,23 @@ export interface AvatarConfig {
   folder?: string;
 
   /**
-   * Size of the small avatar variant in pixels.
-   * Defaults to 64.
+   * Avatar variant sizes in pixels.
+   * Defaults to { small: 64, medium: 256, large: 1024 }.
+   */
+  sizes?: Partial<AvatarSizes>;
+
+  /**
+   * Deprecated alias for sizes.small.
    */
   smallSize?: number;
 
   /**
-   * Size of the medium avatar variant in pixels.
-   * Defaults to 256.
+   * Deprecated alias for sizes.medium.
    */
   mediumSize?: number;
 
   /**
-   * Size of the large avatar variant in pixels.
-   * Defaults to 1024.
+   * Deprecated alias for sizes.large.
    */
   largeSize?: number;
 
