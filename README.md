@@ -68,12 +68,13 @@ Relate `Avatar` from models that have `avatar_id`.
 
 ```ts
 // app/models/user.ts
-import { BaseModel, belongsTo, column, computed } from '@adonisjs/lucid/orm';
+import { BaseModel, belongsTo, computed } from '@adonisjs/lucid/orm';
 import type { BelongsTo } from '@adonisjs/lucid/types/relations';
+import { avatar } from 'adonisjs-avatar';
 import Avatar from '#models/avatar';
 
 export default class User extends BaseModel {
-  @column()
+  @avatar()
   declare avatarId: number | null;
 
   @belongsTo(() => Avatar)
